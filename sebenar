@@ -1,0 +1,759 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D School Bag Pack & Match Mandarin Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Fredoka', 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #e8f5e9;
+            touch-action: none;
+        }
+
+        /* CONTAINER WITH VIBRANT ORANGE, GREEN & WHITE THEME */
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle at 50% 30%, #ffffff 0%, #e8f5e9 60%, #c8e6c9 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 10px 15px 10px;
+            overflow: hidden;
+        }
+
+        /* AUDIO UNLOCK / START OVERLAY */
+        #start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(46, 125, 50, 0.93);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+
+        #start-overlay h1 {
+            font-size: 2.2rem;
+            color: #fff;
+            text-shadow: 2px 3px 0 #1b5e20;
+            margin-bottom: 8px;
+        }
+
+        #start-overlay p {
+            font-size: 1.15rem;
+            color: #ffe082;
+            margin-bottom: 25px;
+            max-width: 380px;
+            line-height: 1.4;
+        }
+
+        #start-btn {
+            background: linear-gradient(180deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            border: 4px solid #ffffff;
+            padding: 16px 48px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #e65100, 0 12px 20px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        #start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #e65100, 0 6px 10px rgba(0,0,0,0.2);
+        }
+
+        /* HEADER BANNER */
+        .header-banner {
+            background: #ffffff;
+            border: 4px solid #4caf50;
+            border-radius: 25px;
+            padding: 8px 25px;
+            color: #e65100;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.2);
+            z-index: 10;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .header-banner h1 {
+            font-size: 1.4rem;
+            color: #ef6c00;
+            letter-spacing: 0.5px;
+        }
+
+        .level-badge {
+            background: #4caf50;
+            color: white;
+            padding: 3px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* PLAY AREA & 3D BAG */
+        .play-area {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 54vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .school-bag {
+            width: 320px;
+            height: 380px;
+            position: relative;
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            border-radius: 42px 42px 30px 30px;
+            border: 6px solid #e65100;
+            box-shadow: 0 22px 35px rgba(0,0,0,0.22), inset 0 8px 0 rgba(255,255,255,0.4);
+            transform: rotateX(6deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .bag-handle {
+            position: absolute;
+            top: -36px;
+            width: 92px;
+            height: 42px;
+            border: 8px solid #e65100;
+            border-bottom: none;
+            border-radius: 22px 22px 0 0;
+            background: transparent;
+        }
+
+        .bag-pocket {
+            position: absolute;
+            bottom: 12px;
+            width: 86%;
+            height: 90px;
+            background: #ffb74d;
+            border: 4px solid #e65100;
+            border-radius: 20px;
+            box-shadow: inset 0 4px 0 rgba(255,255,255,0.4);
+            pointer-events: none;
+        }
+
+        .bag-badge {
+            position: absolute;
+            top: 10px;
+            background: #4caf50;
+            color: white;
+            border: 3px solid #2e7d32;
+            padding: 3px 14px;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+
+        /* SHADOW SLOTS GRID */
+        .shadow-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            z-index: 5;
+            margin-top: 15px;
+        }
+
+        .shadow-slot {
+            width: 82px;
+            height: 82px;
+            background: rgba(0, 0, 0, 0.28);
+            border: 3px dashed rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+        }
+
+        .shadow-slot.drag-over {
+            transform: scale(1.12);
+            border-color: #76ff03;
+            background: rgba(76, 175, 80, 0.45);
+            box-shadow: 0 0 15px #76ff03;
+        }
+
+        .shadow-slot .silhouette {
+            font-size: 2.3rem;
+            filter: brightness(0) drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+            opacity: 0.65;
+            transition: filter 0.3s, opacity 0.3s, transform 0.3s;
+        }
+
+        .shadow-slot.matched {
+            border: 3.5px solid #2e7d32;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        }
+
+        .shadow-slot.matched .silhouette {
+            filter: none;
+            opacity: 1;
+            transform: scale(1.08);
+        }
+
+        .shadow-slot .label {
+            position: absolute;
+            bottom: -32px;
+            width: 125%;
+            text-align: center;
+            font-size: 0.68rem;
+            background: #ffffff;
+            border: 2px solid #4caf50;
+            padding: 3px 4px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #1b5e20;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 20;
+            pointer-events: none;
+            line-height: 1.15;
+            transform: translateY(4px);
+        }
+
+        .shadow-slot.matched .label {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* TRAY AT BOTTOM */
+        .items-tray {
+            width: 95%;
+            max-width: 520px;
+            height: 100px;
+            background: #ffffff;
+            border: 4px solid #81c784;
+            border-radius: 25px;
+            padding: 8px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            z-index: 10;
+            margin-bottom: 10px;
+        }
+
+        .draggable-item {
+            width: 66px;
+            height: 66px;
+            background: #fff8e1;
+            border: 3px solid #ffa726;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 5px 0 #fb8c00, 0 6px 10px rgba(0,0,0,0.12);
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+            touch-action: none;
+            position: relative;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+
+        .draggable-item .icon {
+            font-size: 2.2rem;
+            pointer-events: none;
+        }
+
+        /* CLONED DRAG ELEMENT FOR TOUCH */
+        .touch-drag-avatar {
+            position: fixed;
+            pointer-events: none;
+            z-index: 3000;
+            width: 72px;
+            height: 72px;
+            background: #fff8e1;
+            border: 3px solid #ff9800;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%) scale(1.15);
+            opacity: 0.95;
+        }
+
+        /* SPARKLE PARTICLE EFFECT */
+        .sparkle-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 4000;
+            font-size: 1.5rem;
+            animation: floatAndFade 0.85s ease-out forwards;
+        }
+
+        @keyframes floatAndFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.6) rotate(180deg);
+            }
+        }
+
+        /* MODAL STATUS */
+        #status-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.82);
+            z-index: 2500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #status-modal h2 {
+            font-size: 2.4rem;
+            color: #ffd54f;
+            text-shadow: 2px 3px 0 #e65100;
+            margin-bottom: 10px;
+        }
+
+        #status-modal p {
+            font-size: 1.25rem;
+            margin-bottom: 25px;
+            color: #e8f5e9;
+        }
+
+        #status-modal button {
+            background: linear-gradient(180deg, #4caf50 0%, #388e3c 100%);
+            border: 4px solid #fff;
+            color: white;
+            font-size: 1.5rem;
+            padding: 14px 38px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #1b5e20, 0 10px 20px rgba(0,0,0,0.3);
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+
+        #status-modal button:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #1b5e20;
+        }
+
+        @media (max-width: 500px) {
+            .school-bag { width: 285px; height: 345px; }
+            .shadow-slot { width: 70px; height: 70px; }
+            .shadow-slot .silhouette { font-size: 1.9rem; }
+            .draggable-item { width: 56px; height: 56px; }
+            .draggable-item .icon { font-size: 1.8rem; }
+            .shadow-slot .label { font-size: 0.62rem; bottom: -30px; width: 130%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1>🎒 装书包 (Pack Bag!)</h1>
+        <p>Drag items into matching silhouettes & learn Mandarin with audio pronunciation!</p>
+        <button id="start-btn" onclick="initGame()">MULA MAIN 🔊</button>
+    </div>
+
+    <div id="game-container">
+        <div class="header-banner">
+            <h1>🎒 装书包 (Kemas Beg Sekolah)</h1>
+            <div class="level-badge" id="level-title">Tahap 1 / 3</div>
+        </div>
+
+        <div class="play-area">
+            <div class="school-bag">
+                <div class="bag-handle"></div>
+                <div class="bag-badge">书包 (Beg Sekolah)</div>
+                <div class="shadow-grid" id="shadow-grid"></div>
+                <div class="bag-pocket"></div>
+            </div>
+        </div>
+
+        <div class="items-tray" id="items-tray"></div>
+    </div>
+
+    <div id="status-modal">
+        <h2 id="modal-title">🎉 太棒了!</h2>
+        <p id="modal-desc">Tahap Selesai!</p>
+        <button id="modal-btn" onclick="nextLevel()">TAHAP SETERUSNYA ➡️</button>
+    </div>
+
+    <script>
+        // MULTI-LEVEL DATA WITH TRANSLATIONS
+        const levels = [
+            {
+                title: "School Supplies",
+                items: [
+                    { id: "book", hanzi: "书", pinyin: "shū", malay: "Buku", icon: "📘" },
+                    { id: "pencil", hanzi: "铅笔", pinyin: "qiān bǐ", malay: "Pensel", icon: "✏️" },
+                    { id: "ruler", hanzi: "尺子", pinyin: "chǐ zi", malay: "Pembaris", icon: "📏" },
+                    { id: "scissors", hanzi: "剪刀", pinyin: "jiǎn dāo", malay: "Gunting", icon: "✂️" },
+                    { id: "eraser", hanzi: "橡皮", pinyin: "xiàng pí", malay: "Pemadam", icon: "🧽" },
+                    { id: "water", hanzi: "水壶", pinyin: "shuǐ hú", malay: "Botol Air", icon: "🥤" }
+                ]
+            },
+            {
+                title: "Classroom & Art",
+                items: [
+                    { id: "pen", hanzi: "钢笔", pinyin: "gāng bǐ", malay: "Pen", icon: "🖊️" },
+                    { id: "notebook", hanzi: "笔记本", pinyin: "bǐ jì běn", malay: "Buku Nota", icon: "📓" },
+                    { id: "crayon", hanzi: "蜡笔", pinyin: "là bǐ", malay: "Krayon", icon: "🖍️" },
+                    { id: "glue", hanzi: "胶水", pinyin: "jiāo shuǐ", malay: "Gam", icon: "🧴" },
+                    { id: "glasses", hanzi: "眼镜", pinyin: "yǎn jìng", malay: "Cermin Mata", icon: "👓" },
+                    { id: "umbrella", hanzi: "雨伞", pinyin: "yǔ sǎn", malay: "Payung", icon: "☂️" }
+                ]
+            },
+            {
+                title: "Food & Snacks",
+                items: [
+                    { id: "apple", hanzi: "苹果", pinyin: "píng guǒ", malay: "Epal", icon: "🍎" },
+                    { id: "bento", hanzi: "饭盒", pinyin: "fàn hé", malay: "Bekal Makanan", icon: "🍱" },
+                    { id: "ball", hanzi: "皮球", pinyin: "pí qiú", malay: "Bola", icon: "⚽" },
+                    { id: "towel", hanzi: "毛巾", pinyin: "máo jīn", malay: "Tuala", icon: "🥢" },
+                    { id: "cap", hanzi: "帽子", pinyin: "mào zi", malay: "Topi", icon: "🧢" },
+                    { id: "clock", hanzi: "闹钟", pinyin: "nào zhōng", malay: "Jam Loceng", icon: "⏰" }
+                ]
+            }
+        ];
+
+        let currentLevelIdx = 0;
+        let matchedCount = 0;
+        let globalAudio = new Audio();
+        let draggedId = null;
+        let touchAvatar = null;
+        let activeHoverSlot = null;
+
+        function initGame() {
+            document.getElementById('start-overlay').style.display = 'none';
+            // Unlock audio context on touch/click
+            globalAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+            globalAudio.play().catch(()=>{});
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+
+            loadLevel(0);
+        }
+
+        function loadLevel(idx) {
+            currentLevelIdx = idx;
+            matchedCount = 0;
+            const currentLevel = levels[currentLevelIdx];
+
+            document.getElementById('level-title').innerText = `Tahap ${currentLevelIdx + 1} / ${levels.length}: ${currentLevel.title}`;
+
+            const shadowGrid = document.getElementById('shadow-grid');
+            const itemsTray = document.getElementById('items-tray');
+            shadowGrid.innerHTML = '';
+            itemsTray.innerHTML = '';
+
+            // Render Target Shadow Slots
+            currentLevel.items.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = 'shadow-slot';
+                slot.dataset.id = item.id;
+                slot.innerHTML = `
+                    <div class="silhouette">${item.icon}</div>
+                    <div class="label">${item.hanzi} (${item.pinyin})<br>${item.malay}</div>
+                `;
+                
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleDrop);
+
+                // Slot tap to replay sound if matched
+                slot.addEventListener('click', () => {
+                    if (slot.classList.contains('matched')) {
+                        speakMandarin(item.hanzi);
+                    }
+                });
+
+                shadowGrid.appendChild(slot);
+            });
+
+            // Shuffle Items for Tray
+            const shuffledItems = [...currentLevel.items].sort(() => Math.random() - 0.5);
+
+            shuffledItems.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'draggable-item';
+                itemEl.draggable = true;
+                itemEl.dataset.id = item.id;
+                itemEl.dataset.icon = item.icon;
+                itemEl.id = `drag-${item.id}`;
+                itemEl.innerHTML = `<div class="icon">${item.icon}</div>`;
+
+                itemEl.addEventListener('dragstart', handleDragStart);
+                setupTouchEvents(itemEl);
+
+                itemsTray.appendChild(itemEl);
+            });
+        }
+
+        /* --- DESKTOP DRAG & DROP LOGIC --- */
+        function handleDragStart(e) {
+            draggedId = this.dataset.id;
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const droppedId = e.dataTransfer ? e.dataTransfer.getData('text/plain') : draggedId;
+
+            if (droppedId === this.dataset.id && !this.classList.contains('matched')) {
+                executeMatch(this, droppedId);
+            }
+        }
+
+        /* --- MOBILE TOUCH DRAG & DROP ENGINE --- */
+        function setupTouchEvents(elem) {
+            elem.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                draggedId = elem.dataset.id;
+
+                // Create floating drag avatar
+                touchAvatar = document.createElement('div');
+                touchAvatar.className = 'touch-drag-avatar';
+                touchAvatar.innerText = elem.dataset.icon;
+                touchAvatar.style.left = `${touch.clientX}px`;
+                touchAvatar.style.top = `${touch.clientY}px`;
+                document.body.appendChild(touchAvatar);
+
+                elem.style.opacity = '0.4';
+            }, { passive: false });
+
+            elem.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!touchAvatar) return;
+
+                const touch = e.touches[0];
+                touchAvatar.style.left = `${touch.clientX}px`;
+                touchAvatar.style.top = `${touch.clientY}px`;
+
+                // Detect target under current finger position
+                const targetUnderFinger = document.elementFromPoint(touch.clientX, touch.clientY);
+                const slot = targetUnderFinger ? targetUnderFinger.closest('.shadow-slot') : null;
+
+                if (activeHoverSlot && activeHoverSlot !== slot) {
+                    activeHoverSlot.classList.remove('drag-over');
+                    activeHoverSlot = null;
+                }
+
+                if (slot && !slot.classList.contains('matched')) {
+                    slot.classList.add('drag-over');
+                    activeHoverSlot = slot;
+                }
+            }, { passive: false });
+
+            elem.addEventListener('touchend', (e) => {
+                elem.style.opacity = '1';
+
+                if (touchAvatar) {
+                    touchAvatar.remove();
+                    touchAvatar = null;
+                }
+
+                if (activeHoverSlot) {
+                    activeHoverSlot.classList.remove('drag-over');
+                    const targetSlot = activeHoverSlot;
+                    activeHoverSlot = null;
+
+                    if (targetSlot.dataset.id === draggedId && !targetSlot.classList.contains('matched')) {
+                        executeMatch(targetSlot, draggedId);
+                    }
+                }
+            });
+        }
+
+        /* --- MATCH EXECUTION & SPARKLES --- */
+        function executeMatch(slotEl, itemId) {
+            const currentItems = levels[currentLevelIdx].items;
+            const itemData = currentItems.find(i => i.id === itemId);
+            slotEl.classList.add('matched');
+
+            // Hide item from tray
+            const trayItem = document.getElementById(`drag-${itemId}`);
+            if (trayItem) {
+                trayItem.style.visibility = 'hidden';
+                trayItem.style.pointerEvents = 'none';
+            }
+
+            // Sparkle Particle Effect
+            createSparkles(slotEl);
+
+            // Play Pronunciation Sound
+            speakMandarin(itemData.hanzi);
+
+            matchedCount++;
+            if (matchedCount === currentItems.length) {
+                setTimeout(() => {
+                    showLevelCompleteModal();
+                }, 1200);
+            }
+        }
+
+        function createSparkles(targetSlot) {
+            const rect = targetSlot.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const sparkles = ['✨', '⭐', '🌟', '🎉'];
+
+            for (let i = 0; i < 14; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-particle';
+                sparkle.innerText = sparkles[Math.floor(Math.random() * sparkles.length)];
+
+                const dx = (Math.random() - 0.5) * 180 + 'px';
+                const dy = (Math.random() - 0.5) * 180 + 'px';
+
+                sparkle.style.left = `${centerX}px`;
+                sparkle.style.top = `${centerY}px`;
+                sparkle.style.setProperty('--dx', dx);
+                sparkle.style.setProperty('--dy', dy);
+
+                document.body.appendChild(sparkle);
+
+                setTimeout(() => sparkle.remove(), 850);
+            }
+        }
+
+        /* --- MULTI-PLATFORM AUDIO / TTS ENGINE --- */
+        function speakMandarin(textHanzi) {
+            globalAudio.pause();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+
+            let spokenNative = false;
+
+            if ('speechSynthesis' in window) {
+                const voices = window.speechSynthesis.getVoices();
+                const chineseVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN') || v.name.toLowerCase().includes('chinese'));
+
+                if (chineseVoice) {
+                    const msg = new SpeechSynthesisUtterance(textHanzi);
+                    msg.voice = chineseVoice;
+                    msg.lang = 'zh-CN';
+                    msg.rate = 0.85;
+                    window.speechSynthesis.speak(msg);
+                    spokenNative = true;
+                }
+            }
+
+            // Fallback to online Chinese dictionary TTS engine if native TTS is missing or silent
+            if (!spokenNative) {
+                const encodedText = encodeURIComponent(textHanzi);
+                globalAudio.src = `https://dict.youdao.com/dictvoice?audio=${encodedText}&type=1`;
+                globalAudio.play().catch(() => {
+                    globalAudio.src = `https://tts.baidu.com/text2audio?tex=${encodedText}&cuid=baike&lan=ZH&ctp=1&padd=&spd=4`;
+                    globalAudio.play().catch(err => console.log("Audio Error:", err));
+                });
+            }
+        }
+
+        /* --- MODAL CONTROL --- */
+        function showLevelCompleteModal() {
+            const modal = document.getElementById('status-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const btn = document.getElementById('modal-btn');
+
+            if (currentLevelIdx < levels.length - 1) {
+                title.innerText = "🎉 太棒了! (Sangat Bagus!)";
+                desc.innerText = `Tahap ${currentLevelIdx + 1} Berjaya Dibereskan!`;
+                btn.innerText = "TAHAP SETERUSNYA ➡️";
+            } else {
+                title.innerText = "🏆 恭喜! (Tahniah!)";
+                desc.innerText = "Anda telah melengkapkan SEMUA Tahap!";
+                btn.innerText = "MAIN SEMULA 🔄";
+            }
+            modal.style.display = 'flex';
+        }
+
+        function nextLevel() {
+            document.getElementById('status-modal').style.display = 'none';
+            if (currentLevelIdx < levels.length - 1) {
+                loadLevel(currentLevelIdx + 1);
+            } else {
+                loadLevel(0);
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+    </script>
+</body>
+</html>
